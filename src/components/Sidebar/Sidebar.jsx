@@ -1,19 +1,24 @@
-// src/components/Sidebar/Sidebar.jsx
+// src/components/Sidebar.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Users, FileText, User, BarChart3, LogOut } from 'lucide-react';
-import Logo from '../Common/Logo';
-import UserProfile from '../Common/UserProfile';
-import NavItem from './NavItem';
+import { Home, Users, FileText, User, BarChart3, LogOut, Wallet } from 'lucide-react';
+import Logo from '../Common/Logo.jsx';
+import UserProfile from '../Common/UserProfile.jsx';
+import NavItem from './NavItem.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
+import { logoutAdmin } from '../../api/api.js';
 
 const Sidebar = ({ activeNav, user }) => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const navItems = [
     { id: 'dashboard', icon: Home, label: 'Dashboard', path: '/dashboard' },
     { id: 'users', icon: Users, label: 'Users', path: '/users' },
+    { id: 'kyc', icon: User, label: 'KYC', path: '/kyc' },
     { id: 'scheme', icon: FileText, label: 'Scheme', path: '/scheme' },
     { id: 'reports', icon: BarChart3, label: 'Reports', path: '/reports' },
+    { id: 'payments', icon: Wallet, label: 'Payments', path: '/payments' },
     { id: 'profile', icon: User, label: 'Profile', path: '/profile' },
   ];
 
@@ -21,26 +26,26 @@ const Sidebar = ({ activeNav, user }) => {
     navigate(path);
   };
 
-  const handleLogout = () => {
-    // Add your logout logic here
-    console.log('Logout clicked');
-    // Example: Clear user session, redirect to login, etc.
-    // navigate('/login');
+  const handleLogout = async () => {
+    const userId = localStorage.getItem('userId');
+    try {
+      await logoutAdmin(userId);
+      logout();
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+      alert('Failed to logout. Please try again.');
+    }
   };
 
   return (
     <div className="w-64 bg-white shadow-sm flex flex-col">
-      {/* Logo */}
       <div className="p-6">
         <Logo />
       </div>
-
-      {/* User Profile */}
       <div className="px-6 pb-6">
         <UserProfile user={user} />
       </div>
-
-      {/* Navigation */}
       <nav className="flex-1 px-4">
         {navItems.map((item) => (
           <NavItem
@@ -51,8 +56,6 @@ const Sidebar = ({ activeNav, user }) => {
           />
         ))}
       </nav>
-
-      {/* Logout Button */}
       <div className="px-4 pb-6">
         <button
           onClick={handleLogout}
