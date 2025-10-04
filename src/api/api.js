@@ -64,3 +64,15 @@ export const fetchPendingKYC = () => {
 export const updateKYCStatus = async (kyc_id, status, reason = null) => {
     return axiosInstance.patch(`admin/kyc`, { kyc_id, status, reason });
 };
+
+export const addCurrencyConfig = (data) => {
+    return axiosInstance.post('admin/config', data);
+}
+
+export const getCurrency = () => {
+    return axiosInstance.get('admin/aed-rate');
+}
+
+export const updateCurrency = (data) => {
+    return axiosInstance.patch('admin/aed-rate', data);
+}
