@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('adminToken');
     const role = localStorage.getItem('userRole');
     if (token && role === 'admin') {
       setIsAuthenticated(true);
@@ -24,14 +24,14 @@ export const AuthProvider = ({ children }) => {
   const login = (token, role) => {
     setIsAuthenticated(true);
     setUserRole(role);
-    localStorage.setItem('authToken', token);
+    localStorage.setItem('adminToken', token);
     localStorage.setItem('userRole', role);
   };
 
   const logout = () => {
     setIsAuthenticated(false);
     setUserRole(null);
-    localStorage.removeItem('authToken');
+    localStorage.removeItem('adminToken');
     localStorage.removeItem('userId');
     localStorage.removeItem('userName');
     localStorage.removeItem('userEmail');

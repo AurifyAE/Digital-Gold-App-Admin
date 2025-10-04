@@ -8,4 +8,20 @@ const axiosInstance = axios.create({
   },
 });
 
+// Add a request interceptor
+axiosInstance.interceptors.request.use(
+  (config) => {
+    // Read token each time before a request
+    const token = localStorage.getItem("adminToken");
+    console.log("Token from localStorage:", token); // Debugging line
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 export default axiosInstance;

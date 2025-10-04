@@ -14,6 +14,7 @@ const Sidebar = ({ activeNav, user }) => {
 
   const navItems = [
     { id: 'dashboard', icon: Home, label: 'Dashboard', path: '/dashboard' },
+    { id: 'spotrate', icon: FileText, label: 'Spot Rate', path: '/spotrate' },
     { id: 'users', icon: Users, label: 'Users', path: '/users' },
     { id: 'kyc', icon: User, label: 'KYC', path: '/kyc' },
     { id: 'scheme', icon: FileText, label: 'Scheme', path: '/scheme' },
@@ -39,14 +40,14 @@ const Sidebar = ({ activeNav, user }) => {
   };
 
   return (
-    <div className="w-64 bg-white shadow-sm flex flex-col">
-      <div className="p-6">
+    <div className="w-64 bg-white shadow-sm flex flex-col h-screen border-r border-gray-100">
+      <div className="p-5">
         <Logo />
       </div>
-      <div className="px-6 pb-6">
+      <div className="px-4 py-4">
         <UserProfile user={user} />
       </div>
-      <nav className="flex-1 px-4">
+      <nav className="flex-1 px-2 py-4 overflow-y-auto">
         {navItems.map((item) => (
           <NavItem
             key={item.id}
@@ -56,12 +57,12 @@ const Sidebar = ({ activeNav, user }) => {
           />
         ))}
       </nav>
-      <div className="px-4 pb-6">
+      <div className="px-3 py-4 border-t border-gray-100">
         <button
           onClick={handleLogout}
-          className="w-full flex cursor-pointer items-center gap-3 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+          className="w-full flex cursor-pointer items-center gap-2.5 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 font-medium"
         >
-          <LogOut size={20} />
+          <LogOut size={18} />
           <span>Logout</span>
         </button>
       </div>
