@@ -14,7 +14,8 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { fetchScheme, addScheme, editScheme, deleteScheme } from '../api/api';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion'
+import DirhamIcon from '../components/Icon/DirhamIcon';
 
 const Scheme = () => {
   const [schemes, setSchemes] = useState([]);
@@ -112,11 +113,10 @@ const Scheme = () => {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Scheme name is required';
-    if (!formData.months || formData.months <= 0) newErrors.months = 'Months must be a positive number';
-    if (!formData.amount || formData.amount <= 0) newErrors.amount = 'Amount must be a positive number';
-    if (!formData.bonus || formData.bonus < 0) newErrors.bonus = 'Bonus must be a non-negative number';
-    // Monthly pay is calculated, but validate it in edit mode
-    if (modalMode === 'edit' && (!formData.monthly_pay || formData.monthly_pay <= 0)) {
+    if (!formData.months || parseInt(formData.months) <= 0) newErrors.months = 'Months must be a positive number';
+    if (!formData.amount || parseFloat(formData.amount) <= 0) newErrors.amount = 'Amount must be a positive number';
+    if (!formData.bonus || parseFloat(formData.bonus) < 0) newErrors.bonus = 'Bonus must be a non-negative number';
+    if (!formData.monthly_pay || parseFloat(formData.monthly_pay) <= 0) {
       newErrors.monthly_pay = 'Monthly pay must be a positive number';
     }
 
@@ -127,25 +127,41 @@ const Scheme = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Auto-calculate monthly_pay
+  // Auto-calculate monthly_pay from months and amount
   useEffect(() => {
     if (modalMode === 'create' || modalMode === 'edit') {
       const months = parseInt(formData.months);
       const amount = parseFloat(formData.amount);
       if (months > 0 && amount > 0) {
-        setFormData((prev) => ({
-          ...prev,
-          monthly_pay: (amount / months).toFixed(2),
-        }));
-      } else {
-        setFormData((prev) => ({
-          ...prev,
-          monthly_pay: '',
-        }));
+        const newMonthlyPay = (amount / months).toFixed(2);
+        if (Math.abs(parseFloat(formData.monthly_pay || 0) - parseFloat(newMonthlyPay)) > 0.01) {
+          setFormData((prev) => ({
+            ...prev,
+            monthly_pay: newMonthlyPay,
+          }));
+        }
       }
     }
     // eslint-disable-next-line
   }, [formData.months, formData.amount, modalMode]);
+
+  // Auto-calculate amount from months and monthly_pay
+  useEffect(() => {
+    if (modalMode === 'create' || modalMode === 'edit') {
+      const months = parseInt(formData.months);
+      const monthlyPay = parseFloat(formData.monthly_pay);
+      if (months > 0 && monthlyPay > 0) {
+        const newAmount = (monthlyPay * months).toFixed(2);
+        if (Math.abs(parseFloat(formData.amount || 0) - parseFloat(newAmount)) > 0.01) {
+          setFormData((prev) => ({
+            ...prev,
+            amount: newAmount,
+          }));
+        }
+      }
+    }
+    // eslint-disable-next-line
+  }, [formData.months, formData.monthly_pay, modalMode]);
 
   // Set up formData when modal opens
   useEffect(() => {
@@ -179,7 +195,7 @@ const Scheme = () => {
         bonus: parseFloat(formData.bonus),
       };
 
-      // Always recalc monthly_pay on submit
+      // Always recalc monthly_pay on submit for consistency
       schemeData.monthly_pay = schemeData.amount / schemeData.months;
 
       let response;
@@ -286,9 +302,8 @@ const Scheme = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg ${
-              notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-            } text-white text-xs font-medium flex items-center space-x-2`}
+            className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+              } text-white text-xs font-medium flex items-center space-x-2`}
           >
             {notification.type === 'success' ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
             <span>{notification.message}</span>
@@ -370,9 +385,8 @@ const Scheme = () => {
                 <div>
                   <h3 className="text-base font-semibold text-gray-900 mb-1">{scheme.name}</h3>
                   <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                      scheme.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                    }`}
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${scheme.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}
                   >
                     {scheme.is_active ? 'Active' : 'Inactive'}
                   </span>
@@ -415,24 +429,33 @@ const Scheme = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <DollarSign className="w-4 h-4 text-gray-400" />
+                    <DirhamIcon color="gray" size="medium" />
                     <span className="text-xs text-gray-600">Monthly Pay</span>
                   </div>
-                  <span className="font-medium text-gray-900 text-xs">₹{(scheme.monthly_pay).toFixed(2)}</span>
+                  <span className="font-medium text-gray-900 text-xs flex items-center gap-1">
+                    <DirhamIcon color="black" size="small" />
+                    {(scheme.monthly_pay).toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <DollarSign className="w-4 h-4 text-gray-400" />
+                    <DirhamIcon color="gray" size="medium" />
                     <span className="text-xs text-gray-600">Total Amount</span>
                   </div>
-                  <span className="font-medium text-gray-900 text-xs">₹{scheme.amount}</span>
+                  <span className="font-medium text-gray-900 text-xs flex items-center gap-1">
+                    <DirhamIcon color="black" size="small" />
+                    {scheme.amount}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Gift className="w-4 h-4 text-gray-400" />
                     <span className="text-xs text-gray-600">Bonus</span>
                   </div>
-                  <span className="font-medium text-green-600 text-xs">₹{scheme.bonus}</span>
+                  <span className="font-medium text-green-600 text-xs flex items-center gap-1">
+                    <DirhamIcon color="black" size="small" />
+                    {scheme.bonus}
+                  </span>
                 </div>
               </div>
             </motion.div>
@@ -511,9 +534,8 @@ const Scheme = () => {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     disabled={modalMode === 'view'}
-                    className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:border-gray-300 text-xs ${
-                      errors.name ? 'border-red-500' : 'border-gray-300'
-                    } ${modalMode === 'view' ? 'bg-gray-50' : ''}`}
+                    className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:border-gray-300 text-xs ${errors.name ? 'border-red-500' : 'border-gray-300'
+                      } ${modalMode === 'view' ? 'bg-gray-50' : ''}`}
                     placeholder="Enter scheme name"
                     aria-invalid={!!errors.name}
                     aria-describedby={errors.name ? 'name-error' : undefined}
@@ -532,9 +554,8 @@ const Scheme = () => {
                       value={formData.months}
                       onChange={(e) => setFormData({ ...formData, months: e.target.value })}
                       disabled={modalMode === 'view'}
-                      className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:border-gray-300 text-xs ${
-                        errors.months ? 'border-red-500' : 'border-gray-300'
-                      } ${modalMode === 'view' ? 'bg-gray-50' : ''}`}
+                      className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:border-gray-300 text-xs ${errors.months ? 'border-red-500' : 'border-gray-300'
+                        } ${modalMode === 'view' ? 'bg-gray-50' : ''}`}
                       placeholder="24"
                       aria-invalid={!!errors.months}
                       aria-describedby={errors.months ? 'months-error' : undefined}
@@ -553,9 +574,8 @@ const Scheme = () => {
                       value={formData.amount}
                       onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                       disabled={modalMode === 'view'}
-                      className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:border-gray-300 text-xs ${
-                        errors.amount ? 'border-red-500' : 'border-gray-300'
-                      } ${modalMode === 'view' ? 'bg-gray-50' : ''}`}
+                      className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:border-gray-300 text-xs ${errors.amount ? 'border-red-500' : 'border-gray-300'
+                        } ${modalMode === 'view' ? 'bg-gray-50' : ''}`}
                       placeholder="1500"
                       aria-invalid={!!errors.amount}
                       aria-describedby={errors.amount ? 'amount-error' : undefined}
@@ -575,10 +595,9 @@ const Scheme = () => {
                       step="0.01"
                       value={formData.monthly_pay}
                       onChange={(e) => setFormData({ ...formData, monthly_pay: e.target.value })}
-                      disabled={modalMode === 'view' || modalMode === 'create'}
-                      className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:border-gray-300 text-xs ${
-                        errors.monthly_pay ? 'border-red-500' : 'border-gray-300'
-                      } ${modalMode === 'view' || modalMode === 'create' ? 'bg-gray-50' : ''}`}
+                      disabled={modalMode === 'view'}
+                      className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:border-gray-300 text-xs ${errors.monthly_pay ? 'border-red-500' : 'border-gray-300'
+                        } ${modalMode === 'view' ? 'bg-gray-50' : ''}`}
                       placeholder="62.5"
                       aria-invalid={!!errors.monthly_pay}
                       aria-describedby={errors.monthly_pay ? 'monthly_pay-error' : undefined}
@@ -597,9 +616,8 @@ const Scheme = () => {
                       value={formData.bonus}
                       onChange={(e) => setFormData({ ...formData, bonus: e.target.value })}
                       disabled={modalMode === 'view'}
-                      className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:border-gray-300 text-xs ${
-                        errors.bonus ? 'border-red-500' : 'border-gray-300'
-                      } ${modalMode === 'view' ? 'bg-gray-50' : ''}`}
+                      className={`w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:border-gray-300 text-xs ${errors.bonus ? 'border-red-500' : 'border-gray-300'
+                        } ${modalMode === 'view' ? 'bg-gray-50' : ''}`}
                       placeholder="150"
                       aria-invalid={!!errors.bonus}
                       aria-describedby={errors.bonus ? 'bonus-error' : undefined}

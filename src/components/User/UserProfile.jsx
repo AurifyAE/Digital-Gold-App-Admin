@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit2, AlertCircle, User, CreditCard, History, Target, Wallet, CheckCircle } from 'lucide-react';
 import { getUserById } from '../../api/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import DirhamIcon from '../../components/Icon/DirhamIcon';
 
 const UserProfile = () => {
     const { userId } = useParams();
@@ -190,14 +191,16 @@ const UserProfile = () => {
                                 <div className="text-xs text-green-100">Active Schemes</div>
                             </div>
                             <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-3 text-white">
-                                <div className="text-base font-bold">
-                                    ₹{user.selected_schemes.reduce((sum, s) => sum + (parseFloat(s.scheme?.amount || 0)), 0).toLocaleString()}
+                                <div className="flex flex-row items-center text-base font-bold">
+                                    <DirhamIcon color="white" size="medium" className="mr-1" />
+                                    {user.selected_schemes.reduce((sum, s) => sum + (parseFloat(s.scheme?.amount || 0)), 0).toLocaleString()}
                                 </div>
                                 <div className="text-xs text-purple-100">Total Investment</div>
                             </div>
                             <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-3 text-white">
-                                <div className="text-base font-bold">
-                                    ₹{user.selected_schemes.reduce((sum, s) => sum + (parseFloat(s.balance_payout || 0)), 0).toLocaleString()}
+                                <div className="flex flex-row items-center text-base font-bold">
+                                    <DirhamIcon color="white" size="medium" className="mr-1" />
+                                    {user.selected_schemes.reduce((sum, s) => sum + (parseFloat(s.balance_payout || 0)), 0).toLocaleString()}
                                 </div>
                                 <div className="text-xs text-orange-100">Total Balance</div>
                             </div>
@@ -217,9 +220,9 @@ const UserProfile = () => {
                                                 {selectedScheme.status || 'Unknown'}
                                             </span>
                                         </div>
-                                        <p className="text-xs text-gray-500 font-mono">
+                                        {/* <p className="text-xs text-gray-500 font-mono">
                                             ID: {selectedScheme.scheme_id?.slice(-8) || 'N/A'}
-                                        </p>
+                                        </p> */}
                                     </div>
 
                                     {/* Card Body */}
@@ -227,14 +230,16 @@ const UserProfile = () => {
                                         {/* Key Metrics */}
                                         <div className="grid grid-cols-2 gap-2 mb-3">
                                             <div className="text-center p-2 bg-blue-50 rounded">
-                                                <div className="text-sm font-bold text-blue-600">
-                                                    ₹{selectedScheme.scheme?.amount ? parseFloat(selectedScheme.scheme.amount).toLocaleString() : '0'}
+                                                <div className="text-sm font-bold text-blue-600 flex items-center justify-center gap-1">
+                                                    <DirhamIcon color="blue" size="medium" />
+                                                    {selectedScheme.scheme?.amount ? parseFloat(selectedScheme.scheme.amount).toLocaleString() : '0'}
                                                 </div>
                                                 <div className="text-xs text-blue-700">Total</div>
                                             </div>
                                             <div className="text-center p-2 bg-green-50 rounded">
-                                                <div className="text-sm font-bold text-green-600">
-                                                    ₹{selectedScheme.balance_payout ? parseFloat(selectedScheme.balance_payout).toLocaleString() : '0'}
+                                                <div className="text-sm font-bold text-green-600 flex items-center justify-center gap-1">
+                                                    <DirhamIcon color="green" size="medium" />
+                                                    {selectedScheme.balance_payout ? parseFloat(selectedScheme.balance_payout).toLocaleString() : '0'}
                                                 </div>
                                                 <div className="text-xs text-green-700">Balance</div>
                                             </div>
@@ -246,16 +251,18 @@ const UserProfile = () => {
                                                 <span className="text-gray-600">Duration:</span>
                                                 <span className="font-medium">{selectedScheme.scheme?.months || 'N/A'}m</span>
                                             </div>
-                                            <div className="flex justify-between">
+                                            <div className="flex justify-between items-center">
                                                 <span className="text-gray-600">Monthly:</span>
-                                                <span className="font-medium text-green-600">
-                                                    ₹{selectedScheme.scheme?.monthly_pay ? parseFloat(selectedScheme.scheme.monthly_pay).toFixed(0) : '0'}
+                                                <span className="font-medium text-green-600 flex items-center gap-1">
+                                                    <DirhamIcon color="green" size="small" className="w-2.5 h-2.5" />
+                                                    {selectedScheme.scheme?.monthly_pay ? parseFloat(selectedScheme.scheme.monthly_pay).toFixed(0) : '0'}
                                                 </span>
                                             </div>
-                                            <div className="flex justify-between">
+                                            <div className="flex justify-between items-center">
                                                 <span className="text-gray-600">Bonus:</span>
-                                                <span className="font-medium text-purple-600">
-                                                    ₹{selectedScheme.scheme?.bonus ? parseFloat(selectedScheme.scheme.bonus).toFixed(0) : '0'}
+                                                <span className="font-medium text-purple-600 flex items-center gap-1">
+                                                    <DirhamIcon color="purple" size="small" className="w-2.5 h-2.5" />
+                                                    {selectedScheme.scheme?.bonus ? parseFloat(selectedScheme.scheme.bonus).toFixed(0) : '0'}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between">
@@ -326,14 +333,16 @@ const UserProfile = () => {
                                 <div className="text-xs text-green-100">Active Aims</div>
                             </div>
                             <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-3 text-white">
-                                <div className="text-base font-bold">
-                                    ₹{user.aims.reduce((sum, a) => sum + (parseFloat(a.amount || 0)), 0).toLocaleString()}
+                                <div className="flex flex-row items-center text-base font-bold">
+                                    <DirhamIcon color="white" size="medium" className="mr-1" />
+                                    {user.aims.reduce((sum, a) => sum + (parseFloat(a.amount || 0)), 0).toLocaleString()}
                                 </div>
                                 <div className="text-xs text-purple-100">Total Goal Amount</div>
                             </div>
                             <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-3 text-white">
-                                <div className="text-base font-bold">
-                                    ₹{user.aims.reduce((sum, a) => sum + (parseFloat(a.current_saved || 0)), 0).toLocaleString()}
+                                <div className="flex flex-row items-center text-base font-bold">
+                                    <DirhamIcon color="white" size="medium" className="mr-1" />
+                                    {user.aims.reduce((sum, a) => sum + (parseFloat(a.current_saved || 0)), 0).toLocaleString()}
                                 </div>
                                 <div className="text-xs text-orange-100">Total Saved</div>
                             </div>
@@ -353,9 +362,9 @@ const UserProfile = () => {
                                                 {aim.status || 'Unknown'}
                                             </span>
                                         </div>
-                                        <p className="text-xs text-gray-500 font-mono">
+                                        {/* <p className="text-xs text-gray-500 font-mono">
                                             ID: {aim._id?.slice(-8) || 'N/A'}
-                                        </p>
+                                        </p> */}
                                     </div>
 
                                     {/* Card Body */}
@@ -363,14 +372,16 @@ const UserProfile = () => {
                                         {/* Key Metrics */}
                                         <div className="grid grid-cols-2 gap-2 mb-3">
                                             <div className="text-center p-2 bg-blue-50 rounded">
-                                                <div className="text-sm font-bold text-blue-600">
-                                                    ₹{aim.amount ? parseFloat(aim.amount).toLocaleString() : '0'}
+                                                <div className="text-sm font-bold text-blue-600 flex items-center justify-center gap-1">
+                                                    <DirhamIcon color="blue" size="medium" />
+                                                    {aim.amount ? parseFloat(aim.amount).toLocaleString() : '0'}
                                                 </div>
                                                 <div className="text-xs text-blue-700">Goal</div>
                                             </div>
                                             <div className="text-center p-2 bg-green-50 rounded">
-                                                <div className="text-sm font-bold text-green-600">
-                                                    ₹{aim.current_saved ? parseFloat(aim.current_saved).toLocaleString() : '0'}
+                                                <div className="text-sm font-bold text-green-600 flex items-center justify-center gap-1">
+                                                    <DirhamIcon color="green" size="medium" />
+                                                    {aim.current_saved ? parseFloat(aim.current_saved).toLocaleString() : '0'}
                                                 </div>
                                                 <div className="text-xs text-green-700">Saved</div>
                                             </div>
@@ -382,10 +393,11 @@ const UserProfile = () => {
                                                 <span className="text-gray-600">Duration:</span>
                                                 <span className="font-medium">{aim.months || 'N/A'}m</span>
                                             </div>
-                                            <div className="flex justify-between">
+                                            <div className="flex justify-between items-center">
                                                 <span className="text-gray-600">EMI:</span>
-                                                <span className="font-medium text-green-600">
-                                                    ₹{aim.calculated_emi ? parseFloat(aim.calculated_emi).toFixed(0) : '0'}
+                                                <span className="font-medium text-green-600 flex items-center gap-1">
+                                                    <DirhamIcon color="green" size="small" className="w-2.5 h-2.5" />
+                                                    {aim.calculated_emi ? parseFloat(aim.calculated_emi).toFixed(0) : '0'}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between">
@@ -526,8 +538,9 @@ const UserProfile = () => {
                                             <td className="px-4 py-3 text-xs text-gray-900 font-medium max-w-xs truncate">
                                                 {payment.scheme_name}
                                             </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-xs font-bold text-green-600">
-                                                ₹{payment.paid_amount ? parseFloat(payment.paid_amount).toFixed(2) : '0.00'}
+                                            <td className="px-4 py-3 whitespace-nowrap text-xs font-bold text-green-600 flex items-center gap-1">
+                                                <DirhamIcon color="green" size="medium" />
+                                                {payment.paid_amount ? parseFloat(payment.paid_amount).toFixed(2) : '0.00'}
                                             </td>
                                             <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
                                                 {payment.paidAt ? new Date(payment.paidAt).toLocaleDateString() : 'N/A'}
@@ -547,8 +560,9 @@ const UserProfile = () => {
                                 <span className="text-xs font-medium text-gray-500">
                                     Total Payments: {allPayments.length}
                                 </span>
-                                <span className="text-xs font-bold text-gray-900">
-                                    Total Amount: ₹{allPayments.reduce((sum, payment) => sum + (parseFloat(payment.paid_amount) || 0), 0).toFixed(2)}
+                                <span className="text-xs font-bold text-gray-900 flex items-center gap-1">
+                                    <DirhamIcon color="black" size="medium" />
+                                    {allPayments.reduce((sum, payment) => sum + (parseFloat(payment.paid_amount) || 0), 0).toFixed(2)}
                                 </span>
                             </div>
                         </div>
@@ -574,20 +588,23 @@ const UserProfile = () => {
                         {/* Wallet Summary Stats */}
                         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                             <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-3 text-white">
-                                <div className="text-base font-bold">
-                                    ₹{user.wallet.balance ? parseFloat(user.wallet.balance).toLocaleString() : '0.00'}
+                                <div className="text-base font-bold flex items-center gap-1">
+                                    <DirhamIcon color="white" size="medium" />
+                                    {user.wallet.balance ? parseFloat(user.wallet.balance).toLocaleString() : '0.00'}
                                 </div>
                                 <div className="text-xs text-blue-100">Current Balance</div>
                             </div>
                             <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-3 text-white">
-                                <div className="text-base font-bold">
-                                    ₹{user.wallet.credit ? parseFloat(user.wallet.credit).toLocaleString() : '0.00'}
+                                <div className="text-base font-bold flex items-center gap-1">
+                                    <DirhamIcon color="white" size="medium" />
+                                    {user.wallet.credit ? parseFloat(user.wallet.credit).toLocaleString() : '0.00'}
                                 </div>
                                 <div className="text-xs text-green-100">Total Credit</div>
                             </div>
                             <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-lg p-3 text-white">
-                                <div className="text-base font-bold">
-                                    ₹{user.wallet.debit ? parseFloat(user.wallet.debit).toLocaleString() : '0.00'}
+                                <div className="text-base font-bold flex items-center gap-1">
+                                    <DirhamIcon color="white" size="medium" />
+                                    {user.wallet.debit ? parseFloat(user.wallet.debit).toLocaleString() : '0.00'}
                                 </div>
                                 <div className="text-xs text-red-100">Total Debit</div>
                             </div>
@@ -624,8 +641,9 @@ const UserProfile = () => {
                                                         <td className="px-4 py-3 whitespace-nowrap text-xs font-mono text-gray-900">
                                                             {payment._id ? payment._id.slice(-8) : `WAL-${index + 1}`}
                                                         </td>
-                                                        <td className="px-4 py-3 whitespace-nowrap text-xs font-bold text-green-600">
-                                                            ₹{payment.paid_amount ? parseFloat(payment.paid_amount).toFixed(2) : '0.00'}
+                                                        <td className="px-4 py-3 whitespace-nowrap text-xs font-bold text-green-600 flex items-center gap-1">
+                                                            <DirhamIcon color="green" size="medium" />
+                                                            {payment.paid_amount ? parseFloat(payment.paid_amount).toFixed(2) : '0.00'}
                                                         </td>
                                                         <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
                                                             {payment.paidAt ? new Date(payment.paidAt).toLocaleDateString() : 'N/A'}
@@ -650,8 +668,9 @@ const UserProfile = () => {
                                             <span className="text-xs font-medium text-gray-500">
                                                 Total Transactions: {user.wallet.payment_history.length}
                                             </span>
-                                            <span className="text-xs font-bold text-gray-900">
-                                                Total Amount: ₹{user.wallet.payment_history.reduce((sum, payment) => sum + (parseFloat(payment.paid_amount) || 0), 0).toFixed(2)}
+                                            <span className="text-xs font-bold text-gray-900 flex items-center gap-1">
+                                                <DirhamIcon color="black" size="medium" />
+                                                {user.wallet.payment_history.reduce((sum, payment) => sum + (parseFloat(payment.paid_amount) || 0), 0).toFixed(2)}
                                             </span>
                                         </div>
                                     </div>

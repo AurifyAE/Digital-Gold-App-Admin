@@ -308,7 +308,7 @@ const KYC = () => {
 
             {/* Details Modal */}
             {showDetailsModal && selectedApplication && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-center p-5 border-b border-gray-200">
                             <div>
@@ -347,6 +347,13 @@ const KYC = () => {
                                                 <span className="text-sm font-mono font-medium text-gray-900">{selectedApplication.emirates_id}</span>
                                             </div>
                                         </div>
+                                        {/* <div className="flex items-start">
+                                            <User className="w-4 h-4 text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
+                                            <div className="flex-1 min-w-0">
+                                                <span className="text-xs text-gray-500 block">Source of Fund</span>
+                                                <span className="text-sm font-mono font-medium text-gray-900">{selectedApplication.source_of_fund}</span>
+                                            </div>
+                                        </div> */}
                                         <div className="flex items-start">
                                             <Calendar className="w-4 h-4 text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
                                             <div className="flex-1 min-w-0">
@@ -408,27 +415,45 @@ const KYC = () => {
 
                             <div className="mt-6">
                                 <h4 className="text-sm font-semibold text-gray-900 mb-4">Document Images</h4>
-                                <div className="grid md:grid-cols-2 gap-4">
+                                <div className={`grid gap-4 ${selectedApplication.visa_copy ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
                                     <div>
                                         <p className="text-xs font-medium text-gray-700 mb-2">Emirates ID - Front</p>
-                                        <button
+                                        <img
+                                            src={selectedApplication.emirates_id_front_img}
+                                            alt="Emirates ID - Front"
+                                            className="w-full h-32 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity"
                                             onClick={() => handleImageClick(selectedApplication.emirates_id_front_img, 'Emirates ID - Front')}
-                                            className="w-full border border-gray-200 rounded-lg p-4 text-center bg-gray-50 hover:border-blue-400 hover:bg-blue-50 transition-all group"
-                                        >
-                                            <Eye className="w-8 h-8 text-gray-400 group-hover:text-blue-600 mx-auto mb-2 transition-colors" />
-                                            <p className="text-xs text-gray-600 font-medium">Click to view</p>
-                                        </button>
+                                            onError={(e) => {
+                                                e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%23f3f4f6"/%3E%3Ctext x="50" y="50" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%239ca3af"%3EImage not available%3C/text%3E%3C/svg%3E';
+                                            }}
+                                        />
                                     </div>
                                     <div>
                                         <p className="text-xs font-medium text-gray-700 mb-2">Emirates ID - Back</p>
-                                        <button
+                                        <img
+                                            src={selectedApplication.emirates_id_back_img}
+                                            alt="Emirates ID - Back"
+                                            className="w-full h-32 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity"
                                             onClick={() => handleImageClick(selectedApplication.emirates_id_back_img, 'Emirates ID - Back')}
-                                            className="w-full border border-gray-200 rounded-lg p-4 text-center bg-gray-50 hover:border-blue-400 hover:bg-blue-50 transition-all group"
-                                        >
-                                            <Eye className="w-8 h-8 text-gray-400 group-hover:text-blue-600 mx-auto mb-2 transition-colors" />
-                                            <p className="text-xs text-gray-600 font-medium">Click to view</p>
-                                        </button>
+                                            onError={(e) => {
+                                                e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%23f3f4f6"/%3E%3Ctext x="50" y="50" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%239ca3af"%3EImage not available%3C/text%3E%3C/svg%3E';
+                                            }}
+                                        />
                                     </div>
+                                    {selectedApplication.visa_copy && (
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-700 mb-2">Visa Copy</p>
+                                            <img
+                                                src={selectedApplication.visa_copy}
+                                                alt="Visa Copy"
+                                                className="w-full h-32 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity"
+                                                onClick={() => handleImageClick(selectedApplication.visa_copy, 'Visa Copy')}
+                                                onError={(e) => {
+                                                    e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%23f3f4f6"/%3E%3Ctext x="50" y="50" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%239ca3af"%3EImage not available%3C/text%3E%3C/svg%3E';
+                                                }}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -463,24 +488,24 @@ const KYC = () => {
 
             {/* Image Modal */}
             {imageModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center p-4 z-[55]" onClick={() => setImageModal(null)}>
+                <div className=" max-h-screen fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[55]" onClick={() => setImageModal(null)}>
                     <div className="relative max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
-                        <div className="absolute top-0 right-0 m-4 z-10">
+                        <div className="absolute top-0 right-0 m-2 z-10">
                             <button
                                 onClick={() => setImageModal(null)}
-                                className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-2 rounded-full backdrop-blur-sm transition-all"
+                                className="bg-red bg-opacity-20 cursor-pointer hover:bg-opacity-30 text-white p-2 rounded-full backdrop-blur-sm transition-all"
                             >
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
                         <div className="bg-white rounded-lg overflow-hidden">
-                            <div className="bg-gray-800 text-white px-4 py-3">
+                            <div className="bg-gray-500 text-white px-4 py-3">
                                 <h3 className="text-sm font-medium">{imageModal.title}</h3>
                             </div>
                             <img 
                                 src={imageModal.url} 
                                 alt={imageModal.title}
-                                className="w-full h-auto"
+                                className="w-full max-h-[90vh] object-contain"
                                 onError={(e) => {
                                     e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23f3f4f6" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="18" fill="%239ca3af"%3EImage not available%3C/text%3E%3C/svg%3E';
                                 }}
