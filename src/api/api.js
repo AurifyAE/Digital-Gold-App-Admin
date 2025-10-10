@@ -76,3 +76,35 @@ export const getCurrency = () => {
 export const updateCurrency = (data) => {
     return axiosInstance.patch('admin/aed-rate', data);
 }
+
+export const fetchProducts= () => {
+    return axiosInstance.get('admin/products');
+}
+
+export const addProduct= (data) => {
+    return axiosInstance.post('admin/product', data);
+}
+
+export const updateProduct= (data) => {
+    return axiosInstance.patch('admin/products', data);
+}
+
+export const deleteProduct= (id) => {
+    return axiosInstance.delete(`admin/products/${id}`);
+}
+
+export const fetchCategory= () => {
+    return axiosInstance.get('admin/category');
+}
+
+export const addCategory= (data) => {
+    return axiosInstance.post('admin/category', data);
+}
+
+export const updateCategory= (data) => {
+    return axiosInstance.patch('admin/category', data);
+}
+
+export const deleteCategory= (id) => {
+    return axiosInstance.delete(`admin/category/${id}`);
+}

@@ -18,6 +18,7 @@ import Payments from './pages/Payments.jsx';
 import './App.css';
 import KYC from './components/Kyc/kyc.jsx';
 import SpotRate from './pages/SpotRate.jsx';
+import Products from './pages/Products.jsx';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
                 <Route index element={<Navigate to="/dashboard" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="spotrate" element={<SpotRate />} />
+                <Route path="products" element={<Products />} />
                 <Route path="users" element={<Users />} />
                 <Route path="kyc" element={<KYC/>} />
                 <Route path="scheme" element={<Scheme />} />

@@ -1,7 +1,7 @@
 // src/components/Sidebar.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Users, FileText, User, BarChart3, LogOut, Wallet } from 'lucide-react';
+import { Home, Users, FileText, User, BarChart3, LogOut, Wallet, Package, TrendingUp } from 'lucide-react';
 import Logo from '../Common/Logo.jsx';
 import UserProfile from '../Common/UserProfile.jsx';
 import NavItem from './NavItem.jsx';
@@ -14,7 +14,8 @@ const Sidebar = ({ activeNav, user }) => {
 
   const navItems = [
     { id: 'dashboard', icon: Home, label: 'Dashboard', path: '/dashboard' },
-    { id: 'spotrate', icon: FileText, label: 'Spot Rate', path: '/spotrate' },
+    { id: 'spotrate', icon: TrendingUp, label: 'Spot Rate', path: '/spotrate' },
+    { id: 'products', icon: Package, label: 'Products', path: '/products' },
     { id: 'users', icon: Users, label: 'Users', path: '/users' },
     { id: 'kyc', icon: User, label: 'KYC', path: '/kyc' },
     { id: 'scheme', icon: FileText, label: 'Scheme', path: '/scheme' },
