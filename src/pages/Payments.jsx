@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { fetchPayments, updatePaymentStatus } from '../api/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import DirhamIcon from '../components/Icon/DirhamIcon';
 
 const Payments = () => {
   const [payments, setPayments] = useState([]);
@@ -552,8 +553,9 @@ const Payments = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-xs font-semibold text-green-600">₹{(payment.paid_amount).toFixed(2) || '0.00'}</div>
+                        <td className="flex items-center px-6 py-4 whitespace-nowrap">
+                        <DirhamIcon color="green" size="small" />
+                          <div className="text-xs font-semibold text-green-600 ml-1">{(payment.paid_amount).toFixed(2) || '0.00'}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
