@@ -15,11 +15,16 @@ const Products = () => {
     const [editingProduct, setEditingProduct] = useState(null);
     const [editingCategory, setEditingCategory] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
-    
+    const [existingImage, setExistingImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [confirmAction, setConfirmAction] = useState(null);
+    const [confirmMessage, setConfirmMessage] = useState('');
+
     const [productFormData, setProductFormData] = useState({
         title: '',
         description: '',
-        category_id: '',
+        category: '',
         image: null,
         material: '',
         metal_purity: '',
@@ -53,7 +58,7 @@ const Products = () => {
         try {
             const response = await fetchCategory();
             setCategories(response.data.data);
-            console.log('Fetched categories:', response.data.data); // Debug categories
+            console.log('Fetched categories:', response.data.data);
         } catch (err) {
             console.error('Error fetching categories:', err);
             setError('Failed to fetch categories');
@@ -67,7 +72,7 @@ const Products = () => {
         try {
             const response = await fetchProducts();
             setProducts(response.data.data);
-            console.log('Fetched products:', response.data.data); // Debug product data
+            console.log('Fetched products:', response.data.data);
         } catch (err) {
             console.error('Error fetching products:', err);
             setError('Failed to fetch products');
@@ -83,7 +88,7 @@ const Products = () => {
 
     const filteredProducts = products.filter(product =>
         product.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (product.category || getCategoryName(product.category_id) || 'Unknown')?.toLowerCase().includes(searchQuery.toLowerCase())
+        getCategoryName(product.category_id?._id)?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const filteredCategories = categories.filter(category =>
@@ -99,7 +104,6 @@ const Products = () => {
                 dimensions_mm: { ...prev.dimensions_mm, [dimension]: value }
             }));
         } else {
-            console.log(`Input changed: ${name} = ${value}`); // Debug input changes
             setProductFormData(prev => ({ ...prev, [name]: value }));
         }
     };
@@ -113,6 +117,7 @@ const Products = () => {
         const file = e.target.files[0];
         if (file) {
             setProductFormData(prev => ({ ...prev, image: file }));
+            setImagePreview(URL.createObjectURL(file));
         }
     };
 
@@ -121,43 +126,157 @@ const Products = () => {
         setLoading(true);
 
         try {
-            // Validate category_id
-            const selectedCategory = categories.find(cat => cat._id === productFormData.category_id);
-            if (!selectedCategory && productFormData.category_id) {
-                console.warn('Invalid category_id:', productFormData.category_id);
-                setError('Selected category is invalid. Please choose a valid category.');
+            // Validate required fields for add (for update, allow partial if at least one change)
+            if (!productFormData.title) {
+                setError('Product title is required');
+                setLoading(false);
+                return;
+            }
+            if (!productFormData.category || !categories.find(cat => cat._id === productFormData.category)) {
+                setError('Please select a valid category');
+                setLoading(false);
                 return;
             }
 
             const formData = new FormData();
-            Object.keys(productFormData).forEach(key => {
-                if (key === 'dimensions_mm') {
-                    formData.append(key, JSON.stringify(productFormData[key]));
-                } else if (key === 'image' && productFormData[key]) {
-                    formData.append(key, productFormData[key]);
-                } else {
-                    formData.append(key, productFormData[key]);
-                }
-            });
+            let changesDetected = false;
 
-            // Log FormData contents
-            console.log('Submitting FormData:');
-            for (const [key, value] of formData.entries()) {
-                console.log(`${key}:`, value);
-            }
+            // Helper to clean up original values for comparison
+            const getOriginalValue = (original, key) => {
+                const value = original[key] === undefined || original[key] === null ? '' : original[key].toString();
+                return value;
+            };
 
             if (editingProduct) {
-                await updateProduct(editingProduct.id, formData);
+                // --- UPDATE LOGIC: Append ONLY changed or required fields ---
+                formData.append('id', editingProduct._id);
+                const original = editingProduct;
+
+                // Title (Required field)
+                if (productFormData.title !== original.title) {
+                    formData.append('title', productFormData.title);
+                    changesDetected = true;
+                }
+
+                // Description
+                if (productFormData.description !== (original.description || '')) {
+                    formData.append('description', productFormData.description || '');
+                    changesDetected = true;
+                }
+
+                // Category (Required field logic adjusted for object structure)
+                const originalCategoryId = original.category_id?._id || original.category_id;
+                if (productFormData.category && productFormData.category !== originalCategoryId) {
+                    formData.append('category', productFormData.category);
+                    changesDetected = true;
+                }
+
+                // Material
+                if (productFormData.material !== (original.material || '')) {
+                    formData.append('material', productFormData.material || '');
+                    changesDetected = true;
+                }
+
+                // Metal Purity
+                if (productFormData.metal_purity !== (original.metal_purity || '')) {
+                    formData.append('metal_purity', productFormData.metal_purity || '');
+                    changesDetected = true;
+                }
+
+                // Metal Color
+                if (productFormData.metal_color !== (original.metal_color || '')) {
+                    formData.append('metal_color', productFormData.metal_color || '');
+                    changesDetected = true;
+                }
+
+                // Gold Weight
+                const newWeight = productFormData.gold_weight_grams.toString();
+                const originalWeight = getOriginalValue(original, 'gold_weight_grams');
+                if (newWeight !== originalWeight) {
+                    formData.append('gold_weight_grams', newWeight);
+                    changesDetected = true;
+                }
+
+                // Finish
+                if (productFormData.finish !== (original.finish || '')) {
+                    formData.append('finish', productFormData.finish || '');
+                    changesDetected = true;
+                }
+
+                // Dimensions (Complex field comparison)
+                const origDims = original.dimensions_mm || { length: '', width: '', thickness: '' };
+                const newDims = productFormData.dimensions_mm;
+                
+                // Compare all dimension fields
+                if (
+                    newDims.length !== (origDims.length || '') ||
+                    newDims.width !== (origDims.width || '') ||
+                    newDims.thickness !== (origDims.thickness || '')
+                ) {
+                    formData.append('dimensions_mm', JSON.stringify(newDims));
+                    changesDetected = true;
+                }
+
+                // Image - only if a new file selected
+                if (productFormData.image) {
+                    formData.append('image', productFormData.image);
+                    changesDetected = true;
+                } else if (existingImage) {
+                    // Send a flag to tell the backend to keep the existing image path
+                    formData.append('keepExistingImage', 'true');
+                }
+
+                // If only 'id' and 'keepExistingImage' are present, no meaningful change occurred
+                if (!changesDetected) {
+                    setError('No changes detected');
+                    setLoading(false);
+                    return;
+                }
+                
+                console.log('FormData Contents for Update (Only Edited Fields):');
+                for (const [key, value] of formData.entries()) {
+                    console.log(`${key}:`, value);
+                }
+
+                await updateProduct(formData);
                 setSuccess('Product updated successfully!');
+
             } else {
+                // For Add: append all non-empty (standard logic)
+                formData.append('title', productFormData.title);
+                formData.append('category', productFormData.category);
+                if (productFormData.description) formData.append('description', productFormData.description);
+                if (productFormData.material) formData.append('material', productFormData.material);
+                if (productFormData.metal_purity) formData.append('metal_purity', productFormData.metal_purity);
+                if (productFormData.metal_color) formData.append('metal_color', productFormData.metal_color);
+                if (productFormData.gold_weight_grams) formData.append('gold_weight_grams', productFormData.gold_weight_grams);
+                if (productFormData.finish) formData.append('finish', productFormData.finish);
+                
+                const dimensions = productFormData.dimensions_mm;
+                if (dimensions.length || dimensions.width || dimensions.thickness) {
+                    formData.append('dimensions_mm', JSON.stringify(dimensions));
+                }
+                
+                if (productFormData.image) {
+                    formData.append('image', productFormData.image);
+                }
+                
+                console.log('FormData Contents for Add:');
+                for (const [key, value] of formData.entries()) {
+                    console.log(`${key}:`, value);
+                }
+
                 await addProduct(formData);
                 setSuccess('Product added successfully!');
             }
+
             await loadProducts();
             resetProductForm();
         } catch (err) {
             console.error('Error saving product:', err);
-            setError(err.response?.data?.message || 'Failed to save product');
+            // This error handling remains crucial for catching the original backend TypeError 
+            // if we missed any field that the backend expects unconditionally.
+            setError(err.response?.data?.message || 'Failed to save product. If this is an update, check the network tab for missing fields.');
         } finally {
             setLoading(false);
         }
@@ -169,8 +288,15 @@ const Products = () => {
 
         try {
             if (editingCategory) {
-                await updateCategory({id: editingCategory._id, name: categoryFormData.name});
-                setSuccess('Category updated successfully!');
+                // Ensure name is passed for update if it changed. Since Category has one field, we can assume it's updated.
+                if (categoryFormData.name !== editingCategory.name) {
+                     await updateCategory({ id: editingCategory._id, name: categoryFormData.name });
+                     setSuccess('Category updated successfully!');
+                } else {
+                    setError('No changes detected in category name.');
+                    setLoading(false);
+                    return;
+                }
             } else {
                 await addCategory(categoryFormData);
                 setSuccess('Category added successfully!');
@@ -186,26 +312,28 @@ const Products = () => {
     };
 
     const handleEditProduct = (product) => {
-        console.log('Editing product:', product); // Debug product data
-        // Map category name to ID if product has category name instead of ID
-        const categoryId = product.category
-            ? categories.find(cat => cat.name === product.category)?._id || ''
-            : product.category_id || '';
-        if (!categoryId && product.category) {
-            console.warn('No matching category ID found for category name:', product.category);
-        }
         setEditingProduct(product);
+        setExistingImage(product.image || null);
+        
+        // Ensure dimensions are initialized correctly, handling null/undefined defaults
+        const dimensions_mm = product.dimensions_mm || {};
+
         setProductFormData({
             title: product.title || '',
             description: product.description || '',
-            category_id: categoryId,
+            category: product.category_id?._id || product.category_id || '',
             image: null,
             material: product.material || '',
             metal_purity: product.metal_purity || '',
             metal_color: product.metal_color || '',
-            gold_weight_grams: product.gold_weight_grams || '',
+            // Ensure numbers are handled as strings for consistency with input fields
+            gold_weight_grams: product.gold_weight_grams?.toString() || '',
             finish: product.finish || '',
-            dimensions_mm: product.dimensions_mm || { length: '', width: '', thickness: '' }
+            dimensions_mm: { 
+                length: dimensions_mm.length?.toString() || '', 
+                width: dimensions_mm.width?.toString() || '', 
+                thickness: dimensions_mm.thickness?.toString() || '' 
+            }
         });
         setModalType('product');
         setShowModal(true);
@@ -221,42 +349,48 @@ const Products = () => {
     };
 
     const handleDeleteProduct = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this product?')) return;
-
-        setLoading(true);
-        try {
-            await deleteProduct(id);
-            setSuccess('Product deleted successfully!');
-            await loadProducts();
-        } catch (err) {
-            console.error('Error deleting product:', err);
-            setError('Failed to delete product');
-        } finally {
-            setLoading(false);
-        }
+        setConfirmMessage('Are you sure you want to delete this product?');
+        setConfirmAction(() => async () => {
+            setLoading(true);
+            try {
+                await deleteProduct(id);
+                setSuccess('Product deleted successfully!');
+                await loadProducts();
+            } catch (err) {
+                console.error('Error deleting product:', err);
+                setError('Failed to delete product');
+            } finally {
+                setLoading(false);
+                setShowConfirmModal(false);
+            }
+        });
+        setShowConfirmModal(true);
     };
 
     const handleDeleteCategory = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this category?')) return;
-
-        setLoading(true);
-        try {
-            await deleteCategory(id);
-            setSuccess('Category deleted successfully!');
-            await loadCategories();
-        } catch (err) {
-            console.error('Error deleting category:', err);
-            setError('Failed to delete category');
-        } finally {
-            setLoading(false);
-        }
+        setConfirmMessage('Are you sure you want to delete this category?');
+        setConfirmAction(() => async () => {
+            setLoading(true);
+            try {
+                await deleteCategory(id);
+                setSuccess('Category deleted successfully!');
+                await loadCategories();
+            } catch (err) {
+                console.error('Error deleting category:', err);
+                setError('Failed to delete category');
+            } finally {
+                setLoading(false);
+                setShowConfirmModal(false);
+            }
+        });
+        setShowConfirmModal(true);
     };
 
     const resetProductForm = () => {
         setProductFormData({
             title: '',
             description: '',
-            category_id: '',
+            category: '',
             image: null,
             material: '',
             metal_purity: '',
@@ -266,6 +400,8 @@ const Products = () => {
             dimensions_mm: { length: '', width: '', thickness: '' }
         });
         setEditingProduct(null);
+        setExistingImage(null);
+        setImagePreview(null);
         setShowModal(false);
     };
 
@@ -319,9 +455,54 @@ const Products = () => {
                         className="fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg bg-green-500 text-white text-xs font-medium flex items-center space-x-2"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                            <path stroke="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                         </svg>
                         <span>{success}</span>
+                    </motion.div>
+                )}
+                {showConfirmModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                        onClick={() => setShowConfirmModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+                        >
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-lg font-semibold text-gray-900">Confirm Deletion</h2>
+                                <button
+                                    onClick={() => setShowConfirmModal(false)}
+                                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-6">{confirmMessage}</p>
+                            <div className="flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmModal(false)}
+                                    className="flex-1 py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={confirmAction}
+                                    disabled={loading}
+                                    className="flex-1 py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {loading ? 'Deleting...' : 'Delete'}
+                                </button>
+                            </div>
+                        </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -336,22 +517,20 @@ const Products = () => {
             <div className="mb-6 flex gap-2 border-b border-gray-200">
                 <button
                     onClick={() => setActiveTab('products')}
-                    className={`px-4 py-2 text-sm font-medium transition-colors ${
-                        activeTab === 'products'
-                            ? 'text-blue-600 border-b-2 border-blue-600'
-                            : 'text-gray-500 hover:text-gray-700'
-                    }`}
+                    className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'products'
+                        ? 'text-blue-600 border-b-2 border-blue-600'
+                        : 'text-gray-500 hover:text-gray-700'
+                        }`}
                 >
                     <Package className="w-4 h-4 inline-block mr-2" />
                     Products
                 </button>
                 <button
                     onClick={() => setActiveTab('categories')}
-                    className={`px-4 py-2 text-sm font-medium transition-colors ${
-                        activeTab === 'categories'
-                            ? 'text-blue-600 border-b-2 border-blue-600'
-                            : 'text-gray-500 hover:text-gray-700'
-                    }`}
+                    className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'categories'
+                        ? 'text-blue-600 border-b-2 border-blue-600'
+                        : 'text-gray-500 hover:text-gray-700'
+                        }`}
                 >
                     <Tag className="w-4 h-4 inline-block mr-2" />
                     Categories
@@ -372,7 +551,8 @@ const Products = () => {
                 <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={activeTab === 'products' ? openProductModal : openCategoryModal}
+                    onClick={activeTab === 'products' ? openProductModal : openCategoryModal
+                    }
                     className="bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm flex items-center gap-2"
                 >
                     <Plus className="w-4 h-4" />
@@ -402,7 +582,7 @@ const Products = () => {
                                 ) : filteredProducts.length > 0 ? (
                                     filteredProducts.map((product, index) => (
                                         <motion.tr
-                                            key={product.id}
+                                            key={product._id}
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
                                             transition={{ delay: index * 0.05 }}
@@ -417,7 +597,7 @@ const Products = () => {
                                                     <span className="text-sm font-medium text-gray-900">{product.title}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{product.category || getCategoryName(product.category_id)}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{getCategoryName(product.category_id?._id)}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 capitalize">{product.material}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.metal_purity}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 capitalize">{product.metal_color}</td>
@@ -432,7 +612,7 @@ const Products = () => {
                                                         Edit
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDeleteProduct(product.id)}
+                                                        onClick={() => handleDeleteProduct(product._id)}
                                                         className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors text-xs font-medium"
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
@@ -538,13 +718,13 @@ const Products = () => {
                         >
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-xl font-semibold text-gray-900">
-                                    {modalType === 'product' 
+                                    {modalType === 'product'
                                         ? (editingProduct ? 'Edit Product' : 'Add New Product')
                                         : (editingCategory ? 'Edit Category' : 'Add New Category')
                                     }
                                 </h2>
-                                <button 
-                                    onClick={modalType === 'product' ? resetProductForm : resetCategoryForm} 
+                                <button
+                                    onClick={modalType === 'product' ? resetProductForm : resetCategoryForm}
                                     className="text-gray-400 hover:text-gray-600 transition-colors"
                                 >
                                     <X className="w-5 h-5" />
@@ -613,8 +793,8 @@ const Products = () => {
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                                             <select
-                                                name="category_id"
-                                                value={productFormData.category_id}
+                                                name="category"
+                                                value={productFormData.category}
                                                 onChange={handleProductInputChange}
                                                 required
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
@@ -634,13 +814,25 @@ const Products = () => {
                                                 value={productFormData.material}
                                                 onChange={handleProductInputChange}
                                                 placeholder="e.g., gold, silver"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus-outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                             />
                                         </div>
                                     </div>
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                                        {existingImage && !productFormData.image && (
+                                            <div className="mb-2">
+                                                <p className="text-sm text-gray-600">Current Image:</p>
+                                                <img src={existingImage} alt="Current product" className="w-24 h-24 object-cover rounded-lg" />
+                                            </div>
+                                        )}
+                                        {imagePreview && (
+                                            <div className="mb-2">
+                                                <p className="text-sm text-gray-600">Selected Image Preview:</p>
+                                                <img src={imagePreview} alt="Selected preview" className="w-24 h-24 object-cover rounded-lg" />
+                                            </div>
+                                        )}
                                         <div className="flex items-center gap-2">
                                             <input
                                                 type="file"
@@ -651,10 +843,10 @@ const Products = () => {
                                             />
                                             <label
                                                 htmlFor="image-upload"
-                                                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors text-sm"
+                                                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50  transition-colors text-sm"
                                             >
                                                 <Upload className="w-4 h-4" />
-                                                {productFormData.image ? productFormData.image.name : 'Choose file'}
+                                                {productFormData.image ? productFormData.image.name : existingImage ? 'Replace Image' : 'Choose file'}
                                             </label>
                                         </div>
                                     </div>

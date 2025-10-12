@@ -77,34 +77,36 @@ export const updateCurrency = (data) => {
     return axiosInstance.patch('admin/aed-rate', data);
 }
 
-export const fetchProducts= () => {
+export const fetchProducts = () => {
     return axiosInstance.get('admin/products');
 }
 
-export const addProduct= (data) => {
-    return axiosInstance.post('admin/product', data);
+export const addProduct = (data) => {
+    return axiosInstance.post('admin/products', data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
 }
 
-export const updateProduct= (data) => {
+export const updateProduct = (data) => {
     return axiosInstance.patch('admin/products', data);
 }
 
-export const deleteProduct= (id) => {
+export const deleteProduct = (id) => {
     return axiosInstance.delete(`admin/products/${id}`);
 }
 
-export const fetchCategory= () => {
+export const fetchCategory = () => {
     return axiosInstance.get('admin/category');
 }
 
-export const addCategory= (data) => {
+export const addCategory = (data) => {
     return axiosInstance.post('admin/category', data);
 }
 
-export const updateCategory= (data) => {
+export const updateCategory = (data) => {
     return axiosInstance.patch('admin/category', data);
 }
 
-export const deleteCategory= (id) => {
+export const deleteCategory = (id) => {
     return axiosInstance.delete(`admin/category/${id}`);
 }
